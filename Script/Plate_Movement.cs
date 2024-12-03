@@ -24,6 +24,7 @@ public class Plate_Movement : MonoBehaviour
         if (transform.position.x < -0.44f)
         {
             transform.position = new Vector3(-0.44f, transform.position.y, transform.position.z);
+            //test
         }
     }
 }
