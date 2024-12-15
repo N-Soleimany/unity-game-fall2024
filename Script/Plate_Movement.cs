@@ -6,6 +6,7 @@ public class Plate_Movement : MonoBehaviour
 {
     [SerializeField] float speed;
     Vector3 movementDirection;
+    bool alive = true;
 
     void Start()
     {
@@ -15,16 +16,28 @@ public class Plate_Movement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        movementDirection = new Vector3(Input.GetAxis("Horizontal"), 0, 1);
-        transform.Translate(movementDirection * Time.deltaTime * speed);
-        if (transform.position.x > 0.44f)
-        {
-            transform.position = new Vector3(0.44f, transform.position.y, transform.position.z);
+        
+        if (alive) {
+            movementDirection = new Vector3(Input.GetAxis("Horizontal"), 0, 1);
+            transform.Translate(movementDirection * Time.deltaTime * speed);
+            if (transform.position.x > 0.44f)
+            {
+                transform.position = new Vector3(0.44f, transform.position.y, transform.position.z);
+            }
+            if (transform.position.x < -0.44f)
+            {
+                transform.position = new Vector3(-0.44f, transform.position.y, transform.position.z);
+                //test
+            }
         }
-        if (transform.position.x < -0.44f)
+        
+        
+    }
+    private void OnCollisionEnter(Collision collision)
+    {
+        if (collision.transform.CompareTag("obstacle"))
         {
-            transform.position = new Vector3(-0.44f, transform.position.y, transform.position.z);
-            //test
+            alive = false;  
         }
     }
 }
