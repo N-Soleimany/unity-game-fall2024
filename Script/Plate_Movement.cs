@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Plate_Movement : MonoBehaviour
@@ -7,9 +8,13 @@ public class Plate_Movement : MonoBehaviour
     [SerializeField] float speed;
     Vector3 movementDirection;
     bool alive = true;
+    uint score = 0;
+    [SerializeField] AudioClip[] characterClips;
+    private AudioSource audiosource;
 
     void Start()
     {
+        audiosource = GetComponent<AudioSource>(); 
         
     }
 
@@ -37,7 +42,24 @@ public class Plate_Movement : MonoBehaviour
     {
         if (collision.transform.CompareTag("obstacle"))
         {
-            alive = false;  
+            alive = false;
+            Debug.Log("dead");
+            audiosource.clip = characterClips[1]; //changed the audioclip
+            audiosource.Play(); //play the audio
+
+
+        }     
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.transform.CompareTag("food"))
+        {
+            score++;
+            Debug.Log("score" + score);
+            audiosource.clip = characterClips[0]; 
+            audiosource.Play(); 
         }
+
     }
 }
