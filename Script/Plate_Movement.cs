@@ -9,18 +9,19 @@ public class Plate_Movement : MonoBehaviour
     Vector3 movementDirection;
     bool alive = true;
     int score = 0;
-    [SerializeField] AudioClip[] characterClips;
-    private AudioSource audiosource;
+    [SerializeField] AudioClip[] characterClips; // Array of audio clips
+    private AudioSource audioSourceEffects; // Audio source for effects
+    private AudioSource audioSourceBackground; // Audio source for background music
 
     private List<GameObject> stack = new List<GameObject>(); // Stack for food objects
-    private DynamicRoad dynamicRoadScript; // Reference to DynamicRoad script
 
     void Start()
     {
-        audiosource = GetComponent<AudioSource>();
+        AudioSource[] audioSources = GetComponents<AudioSource>();
+        audioSourceEffects = audioSources[0]; // First AudioSource for effects
+        audioSourceBackground = audioSources[1]; // Second AudioSource for background music
 
-        // Find the DynamicRoad script in the scene
-        dynamicRoadScript = FindObjectOfType<DynamicRoad>();
+        PlayBackgroundMusic(); // Start background music
     }
 
     void Update()
@@ -41,14 +42,31 @@ public class Plate_Movement : MonoBehaviour
         }
     }
 
+    private void PlayBackgroundMusic()
+    {
+        audioSourceBackground.clip = characterClips[3]; // Use the background music clip
+        audioSourceBackground.loop = true; // Enable looping
+        audioSourceBackground.Play(); // Play the music
+    }
+
+    private void StopBackgroundMusic()
+    {
+        if (audioSourceBackground.isPlaying)
+        {
+            audioSourceBackground.Stop(); // Stop the background music
+        }
+    }
+
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.transform.CompareTag("obstacle"))
         {
             alive = false;
+            StopBackgroundMusic(); // Stop the background music
             Debug.Log("dead");
-            audiosource.clip = characterClips[1];
-            audiosource.Play();
+            audioSourceEffects.clip = characterClips[2]; // Play death sound
+            audioSourceEffects.loop = false; // Disable looping for death sound
+            audioSourceEffects.Play();
         }
     }
 
@@ -58,48 +76,34 @@ public class Plate_Movement : MonoBehaviour
         {
             score++;
             Debug.Log("score: " + score);
-            audiosource.clip = characterClips[0];
-            audiosource.Play();
+            audioSourceEffects.clip = characterClips[0]; // Play food pickup sound
+            audioSourceEffects.loop = false; // Disable looping for food sound
+            audioSourceEffects.Play();
 
-            // Add food object to the stack
             stack.Add(other.gameObject);
 
-            // Notify DynamicRoad to protect this object
-            if (dynamicRoadScript != null)
-            {
-                dynamicRoadScript.AddProtectedObject(other.gameObject);
-            }
-
-            // Position the new food on top of the stack
             Vector3 newPosition = transform.position + new Vector3(0, 0.1f * stack.Count, 0);
             other.gameObject.transform.position = newPosition;
-            other.gameObject.transform.SetParent(transform); // Make the food a child of the plate
+            other.gameObject.transform.SetParent(transform);
         }
         else if (other.transform.CompareTag("enemy"))
         {
             score--;
             Debug.Log("score: " + score);
-            audiosource.clip = characterClips[1];
-            audiosource.Play();
+            audioSourceEffects.clip = characterClips[1]; // Play enemy sound
+            audioSourceEffects.loop = false; // Disable looping for enemy sound
+            audioSourceEffects.Play();
 
-            // Remove the top food object from the stack if available
             if (stack.Count > 0)
             {
                 GameObject topFood = stack[stack.Count - 1];
                 stack.RemoveAt(stack.Count - 1);
 
-                // Notify DynamicRoad to unprotect this object
-                if (dynamicRoadScript != null)
-                {
-                    dynamicRoadScript.RemoveProtectedObject(topFood);
-                }
-
                 Destroy(topFood);
 
-                // Reposition the remaining objects in the stack
                 for (int i = 0; i < stack.Count; i++)
                 {
-                    if (stack[i] != null) // Ensure the object is not destroyed
+                    if (stack[i] != null)
                     {
                         Vector3 newPosition = transform.position + new Vector3(0, 0.05f * (i + 1), 0);
                         stack[i].transform.position = newPosition;
@@ -110,10 +114,17 @@ public class Plate_Movement : MonoBehaviour
             if (score < 0)
             {
                 alive = false;
+                StopBackgroundMusic(); // Stop the background music
                 Debug.Log("dead");
-                audiosource.clip = characterClips[1];
-                audiosource.Play();
+                audioSourceEffects.clip = characterClips[2]; // Play death sound
+                audioSourceEffects.loop = false; // Disable looping for death sound
+                audioSourceEffects.Play();
             }
         }
+    }
+
+    public List<GameObject> GetStack()
+    {
+        return stack;
     }
 }

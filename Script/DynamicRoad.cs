@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using UnityEngine;
 
 public class DynamicRoad : MonoBehaviour
@@ -9,17 +10,24 @@ public class DynamicRoad : MonoBehaviour
     [SerializeField] GameObject[] food;      // Food to collect for score
     [SerializeField] Transform[] points;     // Spawn points for items
 
-    private List<GameObject> protectedObjects = new List<GameObject>(); // List of objects to protect
-
     GameObject[] createdObstacles;
     GameObject[] createdEnemies;
     GameObject[] createdFood;
+
+    private List<GameObject> stack; // Reference to stack from Plate_Movement
 
     private void Start()
     {
         createdObstacles = new GameObject[points.Length];
         createdEnemies = new GameObject[points.Length];
         createdFood = new GameObject[points.Length];
+
+        // Find the Plate_Movement script and get its stack
+        Plate_Movement plateMovement = FindObjectOfType<Plate_Movement>();
+        if (plateMovement != null)
+        {
+            stack = plateMovement.GetStack();
+        }
 
         RefreshItems();
     }
@@ -31,29 +39,8 @@ public class DynamicRoad : MonoBehaviour
             // Move the parent block forward when triggered
             transform.parent.transform.position += new Vector3(0, 0, 15);
 
-            // Clear and refresh items
-            /*ClearItems(createdObstacles);
-            ClearItems(createdEnemies);
-            ClearItems(createdFood);*/
-
             RefreshItems();
             Debug.Log("!!!block moved!!!");
-        }
-    }
-
-    public void AddProtectedObject(GameObject obj)
-    {
-        if (!protectedObjects.Contains(obj))
-        {
-            protectedObjects.Add(obj);
-        }
-    }
-
-    public void RemoveProtectedObject(GameObject obj)
-    {
-        if (protectedObjects.Contains(obj))
-        {
-            protectedObjects.Remove(obj);
         }
     }
 
@@ -83,6 +70,7 @@ public class DynamicRoad : MonoBehaviour
             }
             arrayIndex++;
         }
+
     }
 
     private void ClearItems(GameObject[] items)
@@ -91,20 +79,19 @@ public class DynamicRoad : MonoBehaviour
         {
             if (items[i] != null)
             {
-                // Log the object details for debugging
-                Debug.Log($"Checking object: {items[i].name}");
+                //Debug.Log($"Checking object: {items[i].name}");
 
-                if (protectedObjects.Contains(items[i]))
+                if (stack.Contains(items[i]))
                 {
-                    Debug.Log($"Skipping protected object: {items[i].name}");
+                    Debug.Log($"Skipping stack object: {items[i].name}");
                     continue;
                 }
 
-                if (items[i].transform.parent != null && items[i].transform.parent.CompareTag("Player"))
+                /*if (items[i].transform.parent != null && items[i].transform.parent.CompareTag("Player"))
                 {
                     Debug.Log($"Skipping object with Player as parent: {items[i].name}");
                     continue;
-                }
+                }*/
 
                 Debug.Log($"Destroying object: {items[i].name}");
                 Destroy(items[i]);
@@ -112,7 +99,6 @@ public class DynamicRoad : MonoBehaviour
             }
         }
     }
-
 
     private GameObject SpawnRandomItem(GameObject[] itemArray, Transform spawnPoint)
     {
