@@ -4,34 +4,69 @@ using UnityEngine;
 
 public class camera_movement : MonoBehaviour
 {
-    // Start is called before the first frame update
-    
     public GameObject mainCharacter;
+
     private Vector3 cameraPosition;
     private Vector3 characterPosition;
     private Vector3 distance;
 
+    public float shakeDuration = 1f; // مدت زمان لرزش دوربین
+    public float shakeIntensity = 0.05f; // شدت لرزش دوربین
+    private bool isShaking = false;
+
+    private float initialShakeIntensity; // شدت اولیه لرزش (برای ثابت نگه داشتن مقدار)
+
     void Start()
     {
-        cameraPosition = this.transform.position;
+        cameraPosition = transform.position;
         characterPosition = mainCharacter.transform.position;
         distance = characterPosition - cameraPosition;
-        //Debug.Log("Distance" + distance);
 
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-       
-
+        initialShakeIntensity = shakeIntensity; // ذخیره شدت اولیه
     }
 
     private void LateUpdate()
     {
-        //Debug.Log("lateupdate");
-        characterPosition = mainCharacter.transform.position; //har lahze posiotion update she
-        cameraPosition = characterPosition - distance;
-        this.transform.position = cameraPosition;
+        characterPosition = mainCharacter.transform.position;
+
+        if (!isShaking)
+        {
+            cameraPosition = characterPosition - distance;
+        }
+        else
+        {
+            float randomOffsetX = Random.Range(-shakeIntensity, shakeIntensity);
+            float randomOffsetY = Random.Range(-shakeIntensity, shakeIntensity);
+            cameraPosition = characterPosition - distance + new Vector3(randomOffsetX, randomOffsetY, 0);
+        }
+
+        transform.position = cameraPosition;
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.transform.CompareTag("enemy"))
+        {
+            StartCoroutine(ShakeCamera());
+        }
+    }
+
+    private IEnumerator ShakeCamera()
+    {
+        isShaking = true;
+        float elapsedTime = 0f;
+        shakeIntensity = initialShakeIntensity; // بازنشانی شدت لرزش به مقدار اولیه
+
+        while (elapsedTime < shakeDuration)
+        {
+            float progress = elapsedTime / shakeDuration;
+            shakeIntensity = Mathf.Lerp(initialShakeIntensity, 0, progress); // کاهش تدریجی شدت لرزش
+
+            elapsedTime += Time.deltaTime;
+            yield return null;
+        }
+
+        shakeIntensity = initialShakeIntensity; // اطمینان از بازگشت به شدت اولیه
+        isShaking = false;
     }
 }

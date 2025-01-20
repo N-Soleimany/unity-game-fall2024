@@ -14,6 +14,7 @@ public class Plate_Movement : MonoBehaviour
     private AudioSource audioSourceBackground; // Audio source for background music
 
     private List<GameObject> stack = new List<GameObject>(); // Stack for food objects
+    private HashSet<Collider> processedEnemies = new HashSet<Collider>();
 
     void Start()
     {
@@ -70,6 +71,8 @@ public class Plate_Movement : MonoBehaviour
         }
     }
 
+
+
     private void OnTriggerEnter(Collider other)
     {
         if (other.transform.CompareTag("food"))
@@ -80,51 +83,78 @@ public class Plate_Movement : MonoBehaviour
             audioSourceEffects.loop = false; // Disable looping for food sound
             audioSourceEffects.Play();
 
-            stack.Add(other.gameObject);
+            // تنظیم اندازه غذا
+            Vector3 targetScale = new Vector3(1f, 1f, 1f);
+            other.gameObject.transform.localScale = targetScale;
 
-            Vector3 newPosition = transform.position + new Vector3(0, 0.1f * stack.Count, 0);
-            other.gameObject.transform.position = newPosition;
+            // Reset position and rotation
+            other.gameObject.transform.SetParent(null);
+            other.gameObject.transform.localPosition = Vector3.zero;
+            other.gameObject.transform.rotation = Quaternion.identity;
+
+            // Add to stack
+            stack.Add(other.gameObject);
+            UpdateStackPositions(); // Recalculate positions for all stack items
+
+            // Attach the item to the player
             other.gameObject.transform.SetParent(transform);
         }
         else if (other.transform.CompareTag("enemy"))
         {
-            score--;
-            Debug.Log("score: " + score);
-            audioSourceEffects.clip = characterClips[1]; // Play enemy sound
-            audioSourceEffects.loop = false; // Disable looping for enemy sound
-            audioSourceEffects.Play();
-
-            if (stack.Count > 0)
+            if (!processedEnemies.Contains(other))
             {
-                GameObject topFood = stack[stack.Count - 1];
-                stack.RemoveAt(stack.Count - 1);
+                processedEnemies.Add(other); // Mark this enemy as processed
 
-                Destroy(topFood);
-
-                for (int i = 0; i < stack.Count; i++)
-                {
-                    if (stack[i] != null)
-                    {
-                        Vector3 newPosition = transform.position + new Vector3(0, 0.05f * (i + 1), 0);
-                        stack[i].transform.position = newPosition;
-                    }
-                }
-            }
-
-            if (score < 0)
-            {
-                alive = false;
-                StopBackgroundMusic(); // Stop the background music
-                Debug.Log("dead");
-                audioSourceEffects.clip = characterClips[2]; // Play death sound
-                audioSourceEffects.loop = false; // Disable looping for death sound
+                score--;
+                Debug.Log("score: " + score);
+                audioSourceEffects.clip = characterClips[1]; // Play enemy sound
+                audioSourceEffects.loop = false; // Disable looping for enemy sound
                 audioSourceEffects.Play();
+
+                if (stack.Count > 0)
+                {
+                    GameObject topFood = stack[stack.Count - 1];
+                    stack.RemoveAt(stack.Count - 1);
+
+                    Destroy(topFood);
+
+                    // Recalculate positions for all remaining items in the stack
+                    UpdateStackPositions();
+                }
+
+                if (score < 0)
+                {
+                    alive = false;
+                    StopBackgroundMusic(); // Stop the background music
+                    Debug.Log("dead");
+                    audioSourceEffects.clip = characterClips[2]; // Play death sound
+                    audioSourceEffects.loop = false; // Disable looping for death sound
+                    audioSourceEffects.Play();
+                }
             }
         }
     }
+
+
+
+    // Helper method to update the positions of all items in the stack
+    private void UpdateStackPositions()
+    {
+        for (int i = 0; i < stack.Count; i++)
+        {
+            if (stack[i] != null)
+            {
+                Vector3 newPosition = transform.position + new Vector3(0, 0.05f * (i + 1), 0);
+                stack[i].transform.position = newPosition;
+            }
+        }
+    }
+
+
+
 
     public List<GameObject> GetStack()
     {
         return stack;
     }
-}
+} 

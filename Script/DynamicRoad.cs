@@ -99,7 +99,6 @@ public class DynamicRoad : MonoBehaviour
             }
         }
     }
-
     private GameObject SpawnRandomItem(GameObject[] itemArray, Transform spawnPoint)
     {
         if (itemArray.Length == 0) return null;
