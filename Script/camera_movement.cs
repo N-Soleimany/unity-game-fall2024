@@ -45,7 +45,7 @@ public class camera_movement : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if (other.transform.CompareTag("enemy"))
+        if (other.CompareTag("enemy"))
         {
             StartCoroutine(ShakeCamera());
         }

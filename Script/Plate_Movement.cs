@@ -1,6 +1,5 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class Plate_Movement : MonoBehaviour
@@ -58,23 +57,10 @@ public class Plate_Movement : MonoBehaviour
         }
     }
 
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.transform.CompareTag("obstacle"))
-        {
-            alive = false;
-            StopBackgroundMusic(); // Stop the background music
-            Debug.Log("dead");
-            audioSourceEffects.clip = characterClips[2]; // Play death sound
-            audioSourceEffects.loop = false; // Disable looping for death sound
-            audioSourceEffects.Play();
-        }
-    }
-
-
-
     private void OnTriggerEnter(Collider other)
     {
+        Debug.Log("Trigger detected with: " + other.gameObject.name); // Log the name of the object triggered
+
         if (other.transform.CompareTag("food"))
         {
             score++;
@@ -133,9 +119,18 @@ public class Plate_Movement : MonoBehaviour
                 }
             }
         }
+        else if (other.transform.CompareTag("obstacle"))
+        {
+            Debug.Log("Obstacle hit!");
+            alive = false;
+            StopBackgroundMusic(); // Stop the background music
+            audioSourceEffects.clip = characterClips[2]; // Play death sound
+            audioSourceEffects.loop = false; // Disable looping for death sound
+            audioSourceEffects.Play();
+
+            Debug.Log("Player is dead.");
+        }
     }
-
-
 
     // Helper method to update the positions of all items in the stack
     private void UpdateStackPositions()
@@ -150,11 +145,8 @@ public class Plate_Movement : MonoBehaviour
         }
     }
 
-
-
-
     public List<GameObject> GetStack()
     {
         return stack;
     }
-} 
+}
